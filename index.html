@@ -65,7 +65,7 @@
     </body>
 	<script src="https://code.jquery.com/jquery-1.12.4.min.js"></script>
     <script type="text/javascript">
-      
+      $(document).ready(function(){
         $("#searchInput").on("keyup", function() {
             var value = $(this).val().toLowerCase();
             $("#output").filter(function() {
@@ -76,6 +76,7 @@
 	   
             });
         });
+     });      
         document.getElementById('searchData').addEventListener('click', searchData);
         document.getElementById("searchInput").addEventListener("keyup", function(event) {
             if (event.keyCode == 13) {
