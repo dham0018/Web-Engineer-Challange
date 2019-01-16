@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <title>Web Engineer Intern - Summer 2019</title>
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+        <style>
+            body{
+                margin: auto;
+            }
+            .header{
+
+                text-align: center;
+                color: white;
+                font-size: 30px;
+                padding-top: 30px;
+                background-image: linear-gradient(to right,rgb(30,105,120), rgb(33,141,107));
+                height: 80px;
+            }
+            input[type=text]{
+                padding: 10px;
+                font-size: 17px;
+                border: 1px solid grey;
+                float: left;
+                width: 90%;
+                background: #f1f1f1;
+                margin-left: 20px;
+            }
+            button{
+                width: 5%;
+                padding: 10px;
+                background: #23995C;
+                color: white;
+                font-size: 17px;
+                border: 1px solid grey;
+                border-left: none;
+                cursor: pointer;
+                margin-left: 10px;
+            }
+            input{
+                -webkit-appearance: none;
+                -moz-appearance: none;
+                appearance: none;
+            }
+            .star{				
+                font-size: 30px;			
+            }
+            .star:before {
+                content: "\2605";
+                color:gray;
+            }
+            .star:checked:before {
+                color:green;
+            }
+        </style>
+    </head>
+    <body onload="getApiData();">
+        <h1 class="header">Toronto Waste Lookup</h1>
+        <input type="text" placeholder="Search.." id="searchInput" name="search">
+        <button type="submit" id="searchData"><i class="fa fa-search"></i></button>
+        <br><br>
+        <div id="output" style="margin-left:17px;" ></div>
+        <div id="fav" style="background-color:#F7FEFA;margin-left:18px">
+            <div id="outputFavorite"></div>
+		</div>
+    </body>
+	<script src="https://code.jquery.com/jquery-1.12.4.min.js"></script>
+    <script type="text/javascript">
+      
+        $("#searchInput").on("keyup", function() {
+            var value = $(this).val().toLowerCase();
+            $("#output").filter(function() {
+                if(value.length==0){
+                    $(this).empty()
+                    $("#outputFavorite").empty()
+                }
+	   
+            });
+        });
+        document.getElementById('searchData').addEventListener('click', searchData);
+        document.getElementById("searchInput").addEventListener("keyup", function(event) {
+            if (event.keyCode == 13) {
+                document.getElementById("searchData").click();
+            }
+        });
+	
+        var allData,numFavorite=0;
+        var dictFavorite = new Object();
+  
+        function getApiData(){
+            fetch('https://secure.toronto.ca/cc_sr_v1/data/swm_waste_wizard_APR?limit=1000')
+            .then((res) => res.json())
+            .then(data => allData = data)
+        }
+	 
+        function searchData(){
+            let searchText=document.getElementById('searchInput').value.toString().toLowerCase();
+            let output = '<table>';
+            let outputFavorite;
+            if(numFavorite > 0) {
+                outputFavorite = '<h1 style="color:green;margin-bottom:-15px">Favorites</h1><table>';
+            }
+            else {
+                outputFavorite = '<table>';
+            }
+            allData.forEach(function(getData){
+                if(getData.keywords.toString().toLowerCase().includes(searchText)) {
+                    let checkedProp = "";
+                    if(dictFavorite[getData.title.toString()] == 'true') {
+                        checkedProp = "checked";
+                        outputFavorite += `           
+                        <tr>
+                            <td><input type="checkbox" id="list" value="${getData.title}" ${checkedProp} class="star"></td>
+                            <td>${getData.title}</td>  
+                            <td>${strip(getData.body)}</td>
+                        </tr>           
+                            `;
+                    }
+                    else {
+                        checkedProp = "";
+                    }
+                    output += `            
+                        <tr>
+                        <td><input type="checkbox" id="list" value="${getData.title}" ${checkedProp} class="star"></td>
+                        <td>${getData.title}</td>  
+                        <td>${strip(getData.body)}</td>
+                        </tr>
+                        `;
+                }
+            });
+		
+            output += '</table>';
+            outputFavorite += '</table>';
+	   
+            document.getElementById('output').innerHTML = output;
+            document.getElementById('outputFavorite').innerHTML = outputFavorite;
+	   
+            $('.star').click(function(){
+                if($(this).prop("checked") == true){
+                    dictFavorite[$(this).val()] = 'true';
+                    numFavorite += 1;
+                }
+                else if($(this).prop("checked") == false){
+                    dictFavorite[$(this).val()] = 'false';
+                    if(numFavorite > 0)
+                        numFavorite -= 1;
+                }
+                searchData();
+            });
+        }
+	
+        function strip(html)
+        {
+            var tmp = document.createElement("ul");
+            tmp.innerHTML = html;
+            return tmp.textContent || tmp.innerText || "";
+        }
+    </script>
+</html>
